@@ -239,8 +239,8 @@ softwareCheck(){
 repair_fonts(){
   if [ "$sftype" == "nes" ]; then
     mkdir -p "$1" || return 1
-    [ ! -f "$1/title.fnt" ] && (cp $rootfs$gamepath/title.fnt "$1" || cp $squashfs$gamepath/title.fnt "$1")
-    [ ! -f "$1/copyright.fnt" ] && (cp $rootfs$gamepath/copyright.fnt "$1" || cp $squashfs$gamepath/copyright.fnt "$1")
+    [ -w "$1" ] && (rsync -ac $rootfs$gamepath/title.fnt "$1/" || rsync -ac $squashfs$gamepath/title.fnt "$1/")
+    [ -w "$1" ] && (rsync -ac $rootfs$gamepath/copyright.fnt "$1/" || rsync -ac $squashfs$gamepath/copyright.fnt "$1/")
   fi
 }
 
@@ -286,7 +286,7 @@ overmount_games(){
   containsGames "$rootfs$gamepath/$menu_code" || menu_code=""
   echo "menu code: $menu_code"
   if containsGames "$rootfs$gamepath/$menu_code"; then
-    overmount "$gamepath/$menu_code" "$gamepath" && repair_games "$rootfs$gamepath/$menu_code" && linkGames "$rootfs$gamepath/$menu_code" && return 0
+    overmount "$gamepath/$menu_code" "$gamepath" && repair_games "$rootfs$gamepath/$menu_code" && repair_fonts "$rootfs$gamepath/$menu_code" && linkGames "$rootfs$gamepath/$menu_code" && return 0
   else
     echo "no romz found at: $rootfs$gamepath/$menu_code"
   fi
