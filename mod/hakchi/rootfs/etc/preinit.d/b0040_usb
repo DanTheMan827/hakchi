@@ -112,6 +112,7 @@ checkExtStorage(){
       checkStorageDevice "$blockDevice$d$p" && return 0
     done
   done
+  isSdBoot && return 1
   [ $timeout -gt 2 ] && timeout=2
   blockDevice="/dev/mmcblk0p"
   waitForMmcDevice "${blockDevice}1"

@@ -13,3 +13,6 @@
 [submodule "3rdparty/decodepng"]
 	path = 3rdparty/decodepng
 	url = https://github.com/DanTheMan827/decodepng.git
+[submodule "3rdparty/e2fsprogs"]
+	path = 3rdparty/e2fsprogs
+	url = https://git.kernel.org/pub/scm/fs/ext2/e2fsprogs.git

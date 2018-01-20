@@ -2,6 +2,7 @@
 
 /bin/mount -t proc proc /proc
 /bin/mount -t sysfs sys /sys
+/bin/busybox --install -s /bin
 
 for i in $(cat /proc/cmdline); do
   if [ "$i" = "ro" ] ; then
@@ -13,22 +14,46 @@ for i in $(cat /proc/cmdline); do
   fi
 done
 
-MOUNT_OPTS="noatime"
-if [ "${DECRYPT}" = "y" ]; then
-  if [ "${READONLY}" == "y" ]; then
-    READONLY="--readonly"
+if [ -f "/key-file" ]; then
+  MOUNT_OPTS="noatime"
+  if [ "${DECRYPT}" = "y" ]; then
+    if [ "${READONLY}" == "y" ]; then
+      READONLY="--readonly"
+    else
+      READONLY=""
+    fi
+  
+    /sbin/cryptsetup open ${ROOTFS} root-crypt ${READONLY} --type plain --cipher aes-xts-plain --key-file /key-file
+    /bin/mount -o "${MOUNT_OPTS}" /dev/mapper/root-crypt /newroot
   else
-    READONLY=""
+    if [ "${READONLY}" == "y" ]; then
+      MOUNT_OPTS="ro,${MOUNT_OPTS}"
+    fi
+  
+    mount -o "${MOUNT_OPTS}" ${ROOTFS} /newroot
   fi
-
-  /sbin/cryptsetup open ${ROOTFS} root-crypt ${READONLY} --type plain --cipher aes-xts-plain --key-file /key-file
-  /bin/mount -o "${MOUNT_OPTS}" /dev/mapper/root-crypt /newroot
 else
-  if [ "${READONLY}" == "y" ]; then
-    MOUNT_OPTS="ro,${MOUNT_OPTS}"
+  while true; do
+    [ -b "/dev/mmcblk0" ] && break
+    usleep 100000
+  done
+  if [ "$(head -c6 /dev/mmcblk0)" == "hakchi" ]; then
+    if [ ! -b /dev/mmcblk0p2 ]; then
+      mkdir /squashtools
+      losetup -o $((1024*40)) /dev/loop1 /dev/mmcblk0
+      mount /dev/loop1 /squashtools
+      mkdir /tmp
+      cp /squashtools/init /tmp/init
+      sh /tmp/init
+      rm /tmp/init
+      rmdir /tmp
+    fi
+    mkdir /firmware
+    mount -o ro /dev/mmcblk0p1 /firmware
+    firmware="$(find /firmware -type f -name "*.hsqs" | sort | grep -vEe '/\._' | head -n1)"
+    losetup /dev/loop2 "$firmware" 
+    mount /dev/loop2 /newroot
   fi
-
-  /bin/mount -o "${MOUNT_OPTS}" ${ROOTFS} /newroot
 fi
 
 [ -f "/hakchi/init" ] && sh "/hakchi/init"

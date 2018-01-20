@@ -10,4 +10,12 @@ dump/
 mod/bin/
 mod/hakchi/rootfs/bin/decodepng
 mod/hakchi/transfer/
+sd/boot0.bin
+sd/uboot.bin
+sd/temp/
+sd/out/
+sd/squash/extra-hmods/*.hmod
+3rdparty/util-linux-2.31.1/
+3rdparty/util-linux-2.31.1.tar.xz
+sd/fs/hakchi/transfer/
 .DS_Store

@@ -9,7 +9,6 @@ init(){
   export bootVersion="1.0.1"
   echo "$modname init script version: $bootVersion"
 
-  /bin/busybox --install -s /bin/
   mkdir -p "$temppath"
   for dir in etc lib usr; do
     [ -e "/$dir" ] || ln -s "$mountpoint/$dir" "/$dir"

@@ -1,0 +1,13 @@
+if [ -b /dev/mmcblk0 ] && [ "$(head -c 6 /dev/mmcblk0)" == "hakchi" ]; then
+  dd "if=/dev/zero" "of=/dev/mmcblk0" bs=1K seek=8 count=32760 || return 1
+  dd "if=$transferpath/boot0.bin" "of=/dev/mmcblk0" bs=1K seek=8 || return 2
+  dd "if=$transferpath/uboot.bin" "of=/dev/mmcblk0" bs=1K seek=19096 || return 3
+  dd "if=$transferpath/kernel.img" "of=/dev/mmcblk0" bs=1K seek=20480 || return 4
+  dd "if=$transferpath/squash.hsqs" "of=/dev/mmcblk0" bs=1K seek=40 || return 5
+fi
+mkdir -p /tmp/hakchiupdate || return 6
+mount "$transferpath/squash.hsqs" /tmp/hakchiupdate || return 7
+rsync -ac --exclude=hakchi/rootfs/etc/preinit.d/p0000_config /tmp/hakchiupdate/fsroot/ "$mountpoint/var/lib/" || return 8
+umount /tmp/hakchiupdate || return 9
+rmdir /tmp/hakchiupdate || return 10
+rm "$transferpath/boot0.bin" "$transferpath/uboot.bin" "$transferpath/kernel.img" "$transferpath/squash.hsqs" || return 11
